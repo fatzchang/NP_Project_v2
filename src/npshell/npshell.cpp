@@ -1,19 +1,16 @@
+#include "command.h"
+
 #include <iostream>
 #include <string>
-#include <regex>
 
 int npshell() {
-    std::string token;
-    // token < fragment < command
-    while (std::cin >> token) {
-        std::cout << token << std::endl;
-        if (token == "\n") {
-            // execute
-            // command -> execute
-        } else {
-
-        }
-    }
+    std::string line;
+    
+    while (1) {
+        getline(std::cin, line);
+        command cmd;
+        cmd.parse(line);
+    } 
     
     return 0;
 }

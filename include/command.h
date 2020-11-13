@@ -1,18 +1,19 @@
+#ifndef __COMMAND_H
+#define __COMMAND_H
+
+#include "fragment.h"
 #include <vector>
-
-class fragment {
-public:
-private:
-    int input_descriptor = STDIN_FILENO;
-    int output_descriptor = STDOUT_FILENO;
-
-}
 
 class command {
 public:
-    command() {}
+    command();
+    int exec();
+    void parse(std::string line);
 
 private:
     std::vector<fragment> fragment_list;
-    add_fragment();
-}
+    void add_fragment(fragment fg);
+    int pipe_counter;
+};
+
+#endif
