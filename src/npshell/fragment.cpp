@@ -1,29 +1,29 @@
 #include "fragment.h"
+#include "fd.h"
+
 #include <unistd.h>
 #include <cstring>
 #include <iostream>
+#include <sys/wait.h>
+
+// public
+fragment::fragment() {
+    clear();
+}
 
 int fragment::exec() {
-    // replace
-    close(STDIN_FILENO);
-    dup(input_descriptor);
-    close(STDOUT_FILENO);
-    dup(output_descriptor);
-    close(STDERR_FILENO);
-    dup(error_descriptor);
-
-
-    if (token_list.at(0) == "setenv") {
+    if (token_list.front() == "setenv") {
         const char * env = token_list.at(1).c_str();
         const char * value = token_list.at(2).c_str();
         setenv(env, value, 1);
-    } else if (token_list.at(0) == "printenv") {
+    } else if (token_list.front() == "printenv") {
         const char * env = token_list.at(1).c_str();
         const char *value = getenv(env);
         std::cout << value << std::endl;
+    } else if (token_list.front() == "exit") {
+        exit(0);
     } else {
-        build(); // build the command
-        execvp(exec_unit[0], exec_unit);
+        exec_bin();
     }
 }
 
@@ -35,12 +35,33 @@ void fragment::set_input(int in_fd) {
     input_descriptor = in_fd;
 }
 
-void fragment::set_output(int out_fd) {
-    output_descriptor = out_fd;
+int fragment::get_output() {
+    return output_descriptor;
 }
 
 void fragment::set_err_piping(bool pipe_err) {
     should_pipe_error = pipe_err;
+}
+
+bool fragment::is_empty() {
+    return token_list.size() == 0;
+}
+
+fragment::~fragment() {
+    if (exec_unit != NULL) {
+        size_t size_with_null = token_list.size() + 1;
+
+        for (size_t i = 0; i < size_with_null; i++) {
+            free(exec_unit[i]);
+        }
+
+        free(exec_unit);
+    }
+}
+
+// private
+void fragment::set_output(int out_fd) {
+    output_descriptor = out_fd;
 }
 
 void fragment::build() {
@@ -62,12 +83,43 @@ void fragment::build() {
     exec_unit = t;
 }
 
-fragment::~fragment() {
-    size_t size_with_null = token_list.size() + 1;
+void fragment::clear() {
+    token_list.clear();
+    input_descriptor = STDIN_FILENO; // default: stdin
+    output_descriptor = STDOUT_FILENO; // default: stdout
+    should_pipe_error = false;
+    exec_unit = NULL;
+}
 
-    for (size_t i = 0; i < size_with_null; i++) {
-        free(exec_unit[i]);
+void fragment::exec_bin() {
+    build(); // build the command
+    
+    int pipefd[2];
+    if (pipe(pipefd) == -1) {
+        std::cerr << "failed to create pipe" << std::endl;
     }
 
-    free(exec_unit);
+    pid_t pid = fork();
+
+    if (pid < 0) {
+        std::cerr << "falied to fork" << std::endl;
+    } if (pid == 0) {
+        close(pipefd[PIPE_READ_END]); // child will never read pipe
+
+        replace_fd(STDIN_FILENO, input_descriptor);
+        replace_fd(STDOUT_FILENO, pipefd[PIPE_WRITE_END]);
+
+        if (should_pipe_error) {
+            replace_fd(STDERR_FILENO, pipefd[PIPE_WRITE_END]);
+        }
+        
+        execvp(exec_unit[0], exec_unit);
+
+        std::cerr << "failed to execute" << std::endl;
+        exit(0);
+    } else {
+        close(pipefd[PIPE_WRITE_END]); // parent will never write pipe
+        set_output(pipefd[PIPE_READ_END]);
+        wait(NULL); // FIXIT: non blocking
+    }
 }

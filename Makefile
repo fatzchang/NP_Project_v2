@@ -6,8 +6,11 @@ EXEC=npshell
 
 all: npshell
 
-npshell: ${SRCS}
-	g++ ${SRCS} -I${INCL_DIR} -o ${EXEC} -std=c++11
+npshell: ${SRCS} ${INCLS}
+	g++ -g ${SRCS} -I${INCL_DIR} -o ${EXEC} -std=c++11
 
 build:
 	g++ -c ${SRCS}
+
+clean:
+	@rm -f npshell
