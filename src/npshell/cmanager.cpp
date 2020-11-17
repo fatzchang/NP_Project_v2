@@ -11,9 +11,10 @@ void cmanager::exec(command cmd) {
     if (cmd.exec(input_fd) == 0) {
         // immediately print the result if it's not a num pipe
         int result_fd = cmd.get_result();
-        char buf[READ_BUFFER_SIZE];
+        char buf[READ_BUFFER_SIZE] = { 0 };
         while(read(result_fd, buf, READ_BUFFER_SIZE) > 0) {
             std::cout << buf << std::flush;
+            memset(buf, 0, READ_BUFFER_SIZE);
         }
     } else {
         cmd_list.push_back(cmd);
@@ -53,9 +54,8 @@ int cmanager::gather_result() {
             std::cerr << "fork failed" << std::endl;
         } else if (pid == 0) { // child
             std::vector<command>::iterator it;
-            char buf[READ_BUFFER_SIZE];
-            memset(buf, 0, READ_BUFFER_SIZE);
-            
+            char buf[READ_BUFFER_SIZE] = { 0 };
+
             for (it = cmd_list.begin(); it != cmd_list.end(); it++) {
                 if (it->hold_turn()) {
                     while(read(it->get_result(), buf, READ_BUFFER_SIZE) > 0) {

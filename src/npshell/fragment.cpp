@@ -116,7 +116,7 @@ void fragment::exec_bin() {
         
         execvp(exec_unit[0], exec_unit);
 
-        std::cerr << "failed to execute" << std::endl;
+        std::cerr << "Unknown command: [" << exec_unit[0] << "]." << std::endl;
         exit(0);
     } else {
         close(pipefd[PIPE_WRITE_END]); // parent will never write pipe
