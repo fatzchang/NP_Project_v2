@@ -47,6 +47,7 @@ bool fragment::is_empty() {
     return token_list.size() == 0;
 }
 
+// TODO: free memory
 fragment::~fragment() {
     // if (exec_unit != NULL) {
     //     size_t size_with_null = token_list.size() + 1;

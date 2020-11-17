@@ -54,6 +54,8 @@ int cmanager::gather_result() {
         } else if (pid == 0) { // child
             std::vector<command>::iterator it;
             char buf[READ_BUFFER_SIZE];
+            memset(buf, 0, READ_BUFFER_SIZE);
+            
             for (it = cmd_list.begin(); it != cmd_list.end(); it++) {
                 if (it->hold_turn()) {
                     while(read(it->get_result(), buf, READ_BUFFER_SIZE) > 0) {
