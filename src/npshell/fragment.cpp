@@ -5,6 +5,7 @@
 #include <cstring>
 #include <iostream>
 #include <sys/wait.h>
+#include <sys/fcntl.h>
 
 // public
 fragment::fragment() {
@@ -20,6 +21,11 @@ int fragment::exec() {
         const char * env = token_list.at(1).c_str();
         const char *value = getenv(env);
         std::cout << value << std::endl;
+    } else if (token_list.front() == ">") {
+        std::string filename = token_list.at(1);
+        int fd = open(filename.c_str(), O_WRONLY);
+        read_and_write(input_descriptor, fd);
+        close(fd);
     } else if (token_list.front() == "exit") {
         exit(0);
     } else {

@@ -16,7 +16,7 @@ void command::parse(std::string line) {
     fragment f;
 
     std::smatch sm;
-    std::regex reg("(\\||!)(\\d+)"); // TODO: will have to implement '>'
+    std::regex reg("(\\||!)(\\d+)");
 
     while (ss >> token) {
         if (token == "|" || token == "!") {
@@ -24,6 +24,11 @@ void command::parse(std::string line) {
             add_fragment(f);
             // clear and reuse the only fragment
             f.clear();
+        } else if (token == ">") {
+            add_fragment(f);
+            f.clear();
+            f.append(token);
+            // TODO: create file
         } else if (regex_match(token, sm, reg)) {
             // deal with num pipe |xxx
             std::string symbo = sm[1].str();

@@ -1,7 +1,6 @@
 #ifndef __COMMAND_H
 #define __COMMAND_H
 
-#define READ_BUFFER_SIZE (1024)
 
 #include "fragment.h"
 #include <vector>

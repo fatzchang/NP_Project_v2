@@ -4,18 +4,14 @@
 #include <unistd.h>
 #include <vector>
 #include <iostream>
-#include <string.h>
+#include <sys/wait.h>
 
 void cmanager::exec(command cmd) {
     int input_fd = gather_result(); // gather result from num pipe list
     if (cmd.exec(input_fd) == 0) {
         // immediately print the result if it's not a num pipe
         int result_fd = cmd.get_result();
-        char buf[READ_BUFFER_SIZE] = { 0 };
-        while(read(result_fd, buf, READ_BUFFER_SIZE) > 0) {
-            std::cout << buf << std::flush;
-            memset(buf, 0, READ_BUFFER_SIZE);
-        }
+        read_and_write(result_fd, STDOUT_FILENO);
     } else {
         cmd_list.push_back(cmd);
     }
@@ -54,14 +50,10 @@ int cmanager::gather_result() {
             std::cerr << "fork failed" << std::endl;
         } else if (pid == 0) { // child
             std::vector<command>::iterator it;
-            char buf[READ_BUFFER_SIZE] = { 0 };
 
             for (it = cmd_list.begin(); it != cmd_list.end(); it++) {
                 if (it->hold_turn()) {
-                    while(read(it->get_result(), buf, READ_BUFFER_SIZE) > 0) {
-                        write(pipefd[PIPE_WRITE_END], buf, READ_BUFFER_SIZE);
-                        memset(buf, 0, READ_BUFFER_SIZE);
-                    }
+                    read_and_write(it->get_result(), pipefd[PIPE_WRITE_END]);
                 }
             }
 
@@ -70,9 +62,10 @@ int cmanager::gather_result() {
 
             exit(0);
         } else {
+            waitpid(pid, NULL, WNOHANG);
+
             close(pipefd[PIPE_WRITE_END]);
             fd = pipefd[PIPE_READ_END];
-            // TODO: non block waiting
         }
     }
     
