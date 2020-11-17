@@ -5,8 +5,6 @@
 #include <sstream>
 #include <unistd.h>
 #include <vector>
-
-#include <iostream>
 #include <regex>
 
 // public
@@ -42,6 +40,7 @@ void command::parse(std::string line) {
     }
 }
 
+// return value is pipe counter, 0 = immediately
 int command::exec(int input_fd) {
     std::vector<fragment>::iterator it;
     for (it = fragment_list.begin(); it != fragment_list.end(); it++) {
@@ -56,12 +55,7 @@ int command::exec(int input_fd) {
     // save the last output of fragment as the result output
     result_descriptor = (it - 1)->get_output();
 
-    // immediately print the result if it's not a num pipe
-    if (pipe_counter == 0) {
-        char buf[READ_BUFFER_SIZE];
-        while(read(result_descriptor, buf, READ_BUFFER_SIZE) > 0)
-            std::cout << buf << std::flush;
-    }
+    return pipe_counter;
 }
 
 bool command::hold_turn() {
@@ -72,6 +66,14 @@ bool command::hold_turn() {
     }
 
     return my_turn;
+}
+
+int command::get_result() {
+    return result_descriptor;
+}
+
+int command::get_counter() {
+    return pipe_counter;
 }
 
 // private

@@ -12,6 +12,8 @@ public:
     command();
     int exec(int input_fd);
     void parse(std::string line);
+    int get_result();
+    int get_counter();
 
     bool hold_turn();
 
