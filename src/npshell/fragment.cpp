@@ -86,7 +86,7 @@ void fragment::build() {
 void fragment::clear() {
     token_list.clear();
     input_descriptor = STDIN_FILENO; // default: stdin
-    output_descriptor = STDOUT_FILENO; // default: stdout
+    output_descriptor = -1;
     should_pipe_error = false;
     exec_unit = NULL;
 }

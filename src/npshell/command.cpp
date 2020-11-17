@@ -6,6 +6,9 @@
 #include <unistd.h>
 #include <vector>
 
+#include <iostream>
+#include <regex>
+
 // public
 command::command(){}
 
@@ -14,12 +17,20 @@ void command::parse(std::string line) {
     std::string token;
     fragment f;
 
+    std::smatch sm;
+    std::regex reg("(\\||!)(\\d+)"); // TODO: will have to implement '>'
+
     while (ss >> token) {
         if (token == "|" || token == "!") {
             f.set_err_piping(token == "!");
             add_fragment(f);
             // clear and reuse the only fragment
             f.clear();
+        } else if (regex_match(token, sm, reg)) {
+            // deal with num pipe |xxx
+            std::string symbo = sm[1].str();
+            pipe_counter = stoi(sm[2].str());
+            f.set_err_piping(symbo == "!");
         } else {
             f.append(token);
         }
@@ -42,14 +53,25 @@ int command::exec(int input_fd) {
         it->exec();
     }
 
-    /**
-     * TODO: if counter == 0, cout the last pipe content
-     * e.g.
-     * char buf[100];
-     * while(read((it - 1)->get_output(), buf, 100) > 0)
-     *     std::cout << buf << std::endl;
-     * 
-     **/
+    // save the last output of fragment as the result output
+    result_descriptor = (it - 1)->get_output();
+
+    // immediately print the result if it's not a num pipe
+    if (pipe_counter == 0) {
+        char buf[READ_BUFFER_SIZE];
+        while(read(result_descriptor, buf, READ_BUFFER_SIZE) > 0)
+            std::cout << buf << std::flush;
+    }
+}
+
+bool command::hold_turn() {
+    bool my_turn = (pipe_counter == 0);
+
+    if (!my_turn) {
+        pipe_counter--;
+    }
+
+    return my_turn;
 }
 
 // private
