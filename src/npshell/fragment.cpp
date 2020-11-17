@@ -48,15 +48,15 @@ bool fragment::is_empty() {
 }
 
 fragment::~fragment() {
-    if (exec_unit != NULL) {
-        size_t size_with_null = token_list.size() + 1;
+    // if (exec_unit != NULL) {
+    //     size_t size_with_null = token_list.size() + 1;
 
-        for (size_t i = 0; i < size_with_null; i++) {
-            free(exec_unit[i]);
-        }
+    //     for (size_t i = 0; i < size_with_null; i++) {
+    //         free(exec_unit[i]);
+    //     }
 
-        free(exec_unit);
-    }
+    //     free(exec_unit);
+    // }
 }
 
 // private

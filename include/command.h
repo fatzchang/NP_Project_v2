@@ -14,8 +14,8 @@ public:
     void parse(std::string line);
     int get_result();
     int get_counter();
-
     bool hold_turn();
+    void decrease_counter();
 
 private:
     std::vector<fragment> fragment_list;

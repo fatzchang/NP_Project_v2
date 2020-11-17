@@ -59,13 +59,11 @@ int command::exec(int input_fd) {
 }
 
 bool command::hold_turn() {
-    bool my_turn = (pipe_counter == 0);
+    return (pipe_counter == 0);
+}
 
-    if (!my_turn) {
-        pipe_counter--;
-    }
-
-    return my_turn;
+void command::decrease_counter() {
+    pipe_counter--;
 }
 
 int command::get_result() {

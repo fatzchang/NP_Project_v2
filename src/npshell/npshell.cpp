@@ -11,10 +11,11 @@ int npshell() {
     while (1) {
         std::cout << "% " << std::flush;
         getline(std::cin, line);
-        command cmd;
-        cmd.parse(line);
-        cmd_manager.exec(cmd);
-        // cmd.exec(STDIN_FILENO); // TODO: modify input when num piping
+        if (line.size() > 0) {
+            command cmd;
+            cmd.parse(line);
+            cmd_manager.exec(cmd);
+        }
     } 
     
     return 0;
