@@ -127,7 +127,9 @@ void fragment::exec_bin() {
         replace_fd(STDOUT_FILENO, pipefd[PIPE_WRITE_END]);
 
         if (should_pipe_error) {
-            replace_fd(STDERR_FILENO, pipefd[PIPE_WRITE_END]);
+            // Do not use pipefd write, because it was closed in previous replace
+            close(STDERR_FILENO);
+            dup(STDOUT_FILENO);
         }
         
         execvp(exec_unit[0], exec_unit);
