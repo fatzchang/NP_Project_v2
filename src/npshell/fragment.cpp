@@ -29,7 +29,7 @@ int fragment::exec() {
     } else if (token_list.front() == "write_file") {
         std::string filename = token_list.at(1);
         std::ofstream outfile (filename);
-        // TODO: non blocking
+        // TODO: non blocking FIXIT: not good
         char buf[READ_BUFFER_SIZE] = { 0 };
         while (read(input_descriptor, buf, READ_BUFFER_SIZE) > 0) {
             outfile << buf << std::flush;
