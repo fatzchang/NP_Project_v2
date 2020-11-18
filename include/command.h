@@ -7,6 +7,8 @@
 
 
 class command {
+enum class fragment_position {back, front};
+
 public:
     command();
     int exec(int input_fd);
@@ -21,7 +23,8 @@ private:
     int pipe_counter = 0;
     int result_descriptor = -1;
     
-    void add_fragment(fragment fg);
+    void add_fragment(fragment fg, fragment_position position);
+    void prepare_output_command(std::string filename);
 };
 
 #endif

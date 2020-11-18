@@ -21,14 +21,17 @@ void command::parse(std::string line) {
     while (ss >> token) {
         if (token == "|" || token == "!") {
             f.set_err_piping(token == "!");
-            add_fragment(f);
+            add_fragment(f, fragment_position::back);
             // clear and reuse the only fragment
             f.clear();
         } else if (token == ">") {
-            add_fragment(f);
+            // save previous fragment
+            add_fragment(f, fragment_position::back);
             f.clear();
-            f.append(token);
-            // TODO: create file
+            
+            std::string filename;
+            ss >> filename;
+            prepare_output_command(filename);
         } else if (regex_match(token, sm, reg)) {
             // deal with num pipe |xxx
             std::string symbo = sm[1].str();
@@ -41,7 +44,7 @@ void command::parse(std::string line) {
 
     // skip empty line
     if (!f.is_empty()) {
-        add_fragment(f);
+        add_fragment(f, fragment_position::back);
     }
 }
 
@@ -80,6 +83,24 @@ int command::get_counter() {
 }
 
 // private
-void command::add_fragment(fragment fg) {
-    fragment_list.push_back(fg);
+void command::add_fragment(fragment fg, fragment_position position) {
+    if (position == fragment_position::back) {
+        fragment_list.push_back(fg);
+    } else {
+        fragment_list.insert(fragment_list.begin(), fg);
+    }
+}
+
+// insert two commmands, one is at the begining, the other is at the end
+void command::prepare_output_command(std::string filename) {
+    fragment f_create_file, f_write_file;
+
+    f_create_file.append("create_file");
+    f_create_file.append(filename);
+
+    f_write_file.append("write_file");
+    f_write_file.append(filename);
+
+    add_fragment(f_create_file, fragment_position::front); // insert to the begining
+    add_fragment(f_write_file, fragment_position::back); // insert to the end
 }

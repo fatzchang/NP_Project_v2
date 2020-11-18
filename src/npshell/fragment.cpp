@@ -6,6 +6,7 @@
 #include <iostream>
 #include <sys/wait.h>
 #include <sys/fcntl.h>
+#include <fstream>
 
 // public
 fragment::fragment() {
@@ -21,11 +22,20 @@ int fragment::exec() {
         const char * env = token_list.at(1).c_str();
         const char *value = getenv(env);
         std::cout << value << std::endl;
-    } else if (token_list.front() == ">") {
+    } else if (token_list.front() == "create_file") {
         std::string filename = token_list.at(1);
-        int fd = open(filename.c_str(), O_WRONLY);
-        read_and_write(input_descriptor, fd);
-        close(fd);
+        std::ofstream outfile (filename);
+        outfile.close();
+    } else if (token_list.front() == "write_file") {
+        std::string filename = token_list.at(1);
+        std::ofstream outfile (filename);
+        // TODO: non blocking
+        char buf[READ_BUFFER_SIZE] = { 0 };
+        while (read(input_descriptor, buf, READ_BUFFER_SIZE) > 0) {
+            outfile << buf << std::flush;
+            memset(buf, 0, READ_BUFFER_SIZE);
+        }
+        outfile.close();
     } else if (token_list.front() == "exit") {
         exit(0);
     } else {
