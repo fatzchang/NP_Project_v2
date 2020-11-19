@@ -116,11 +116,13 @@ void fragment::exec_bin() {
         std::cerr << "failed to create pipe" << std::endl;
     }
 
-    pid_t pid = fork();
-
-    if (pid < 0) {
+    pid_t pid;
+    while ((pid = fork()) < 0) {
         std::cerr << "falied to fork" << std::endl;
-    } if (pid == 0) {
+        usleep(1000);
+    }
+
+    if (pid == 0) {
         close(pipefd[PIPE_READ_END]); // child will never read pipe
 
         replace_fd(STDIN_FILENO, input_descriptor);
@@ -139,6 +141,6 @@ void fragment::exec_bin() {
     } else {
         close(pipefd[PIPE_WRITE_END]); // parent will never write pipe
         set_output(pipefd[PIPE_READ_END]);
-        wait(NULL); // FIXIT: non blocking
+        waitpid(pid, NULL, 0); // FIXIT: non blocking
     }
 }

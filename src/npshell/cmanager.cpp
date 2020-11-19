@@ -44,11 +44,14 @@ int cmanager::gather_result() {
         int pipefd[2];
         pipe(pipefd);
 
-        pid_t pid = fork();
+        pid_t pid;
+        while ((pid = fork()) < 0) {
+            std::cerr << "falied to fork" << std::endl;
+            usleep(1000);
+        }
 
-        if (pid < 0) {
-            std::cerr << "fork failed" << std::endl;
-        } else if (pid == 0) { // child
+        if (pid == 0) {
+            // child
             std::vector<command>::iterator it;
 
             for (it = cmd_list.begin(); it != cmd_list.end(); it++) {
